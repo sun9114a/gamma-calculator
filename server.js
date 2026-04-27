@@ -3,66 +3,41 @@ const app = express();
 
 app.use(express.text({ type: "*/*" }));
 
-function kakaoText(res, text) {
-  return res.status(200).json({
+app.get("/", (req, res) => {
+  res.status(200).send("Gamma calculator server is running");
+});
+
+app.get("/skill", (req, res) => {
+  res.status(200).json({
     version: "2.0",
     template: {
       outputs: [
         {
           simpleText: {
-            text: String(text)
+            text: "GET /skill 정상"
           }
         }
       ]
     }
   });
-}
-
-app.get("/", (req, res) => {
-  res.send("Gamma calculator server is running");
 });
 
 app.post("/skill", (req, res) => {
-  let body = {};
-
-  try {
-    body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-  } catch (e) {
-    return kakaoText(res, "JSON 형식이 잘못되었습니다.");
-  }
-
-  const p = body?.action?.params || {};
-
-  const weight = Number(p["체중"]);
-  const gamma = Number(p["감마용량"]);
-  const drugMg = Number(p["약물용량"]);
-  const volumeMl = Number(p["총수액량"]);
-
-  if (!weight || !gamma || !drugMg || !volumeMl) {
-    return kakaoText(
-      res,
-      "계산에 필요한 값이 부족합니다.\n\n" +
-      `체중: ${p["체중"] ?? "없음"}\n` +
-      `감마용량: ${p["감마용량"] ?? "없음"}\n` +
-      `약물용량: ${p["약물용량"] ?? "없음"}\n` +
-      `총수액량: ${p["총수액량"] ?? "없음"}`
-    );
-  }
-
-  const concentration = (drugMg * 1000) / volumeMl;
-  const mlPerHr = (gamma * weight * 60) / concentration;
-
-  return kakaoText(
-    res,
-    "감마 계산 결과\n\n" +
-    `체중: ${weight} kg\n` +
-    `목표 감마: ${gamma} mcg/kg/min\n` +
-    `희석: ${drugMg} mg / ${volumeMl} mL\n\n` +
-    `주입속도: ${mlPerHr.toFixed(2)} mL/hr`
-  );
+  res.status(200).json({
+    version: "2.0",
+    template: {
+      outputs: [
+        {
+          simpleText: {
+            text: "POST /skill 정상"
+          }
+        }
+      ]
+    }
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });
