@@ -25,19 +25,29 @@ app.post("/skill", (req, res) => {
     return kakaoText(res, "JSON 파싱 오류");
   }
 
-const p = body?.action?.params || {};
+  const p = body?.action?.params || {};
+  const utterance = body?.userRequest?.utterance || "";
 
-const weight = Number(p["체중"]);
-const gamma = Number(p["감마용량"]);
-const drugMg = Number(p["약물용량"]);
-const volumeMl = Number(p["총수액량"]);
-  
-  const gamma = Number(nums[1]);
-  const drugMg = Number(nums[2]);
-  const volumeMl = Number(nums[3]);
+  let weight = Number(p["체중"]);
+  let gamma = Number(p["감마용량"]);
+  let drugMg = Number(p["약물용량"] || p["약물총량"]);
+  let volumeMl = Number(p["총수액량"]);
 
   if (!weight || !gamma || !drugMg || !volumeMl) {
-    return kakaoText(res, "예: 50kg 3mcg 800mg 500ml 처럼 입력해주세요.");
+    const nums = utterance.match(/\d+(\.\d+)?/g) || [];
+    weight = Number(nums[0]);
+    gamma = Number(nums[1]);
+    drugMg = Number(nums[2]);
+    volumeMl = Number(nums[3]);
+  }
+
+  if (!weight || !gamma || !drugMg || !volumeMl) {
+    return kakaoText(
+      res,
+      "값을 못 읽었습니다.\n\n" +
+      `params: ${JSON.stringify(p)}\n` +
+      `utterance: ${utterance}`
+    );
   }
 
   const concentration = (drugMg * 1000) / volumeMl;
@@ -46,8 +56,10 @@ const volumeMl = Number(p["총수액량"]);
   return kakaoText(
     res,
     `감마 계산 결과\n\n` +
-    `입력: ${weight}kg, ${gamma}mcg/kg/min, ${drugMg}mg/${volumeMl}mL\n\n` +
-    `주입속도: ${ccPerHr.toFixed(2)} mL/hr`
+    `체중: ${weight} kg\n` +
+    `감마: ${gamma} mcg/kg/min\n` +
+    `희석: ${drugMg} mg / ${volumeMl} mL\n\n` +
+    `주입속도: ${ccPerHr.toFixed(2)} cc/hr`
   );
 });
 
