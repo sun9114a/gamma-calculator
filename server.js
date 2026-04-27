@@ -7,19 +7,13 @@ function kakaoText(res, text) {
   return res.status(200).json({
     version: "2.0",
     template: {
-      outputs: [
-        {
-          simpleText: {
-            text: String(text)
-          }
-        }
-      ]
+      outputs: [{ simpleText: { text: String(text) } }]
     }
   });
 }
 
 app.get("/", (req, res) => {
-  res.status(200).send("Gamma calculator server is running");
+  res.send("Gamma calculator server is running");
 });
 
 app.post("/skill", (req, res) => {
@@ -27,42 +21,31 @@ app.post("/skill", (req, res) => {
 
   try {
     body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-  } catch (e) {
+  } catch {
     return kakaoText(res, "JSON 파싱 오류");
   }
 
-  const p = body?.action?.params || {};
+  const utterance = body?.userRequest?.utterance || "";
+  const nums = utterance.match(/\d+(\.\d+)?/g) || [];
 
-  const weight = Number(p["체중"]);
-  const gamma = Number(p["감마용량"]);
-  const drugMg = Number(p["약물총량"] || p["약물용량"]);
-  const volumeMl = Number(p["총수액량"]);
+  const weight = Number(nums[0]);
+  const gamma = Number(nums[1]);
+  const drugMg = Number(nums[2]);
+  const volumeMl = Number(nums[3]);
 
   if (!weight || !gamma || !drugMg || !volumeMl) {
-    return kakaoText(
-      res,
-      "값이 부족합니다.\n" +
-      `체중: ${p["체중"] ?? "없음"}\n` +
-      `감마용량: ${p["감마용량"] ?? "없음"}\n` +
-      `약물용량/총량: ${p["약물총량"] || p["약물용량"] || "없음"}\n` +
-      `총수액량: ${p["총수액량"] ?? "없음"}`
-    );
+    return kakaoText(res, "예: 50kg 3mcg 800mg 500ml 처럼 입력해주세요.");
   }
 
   const concentration = (drugMg * 1000) / volumeMl;
-  const mlPerHr = (gamma * weight * 60) / concentration;
+  const ccPerHr = (gamma * weight * 60) / concentration;
 
   return kakaoText(
     res,
     `감마 계산 결과\n\n` +
-    `체중: ${weight} kg\n` +
-    `감마: ${gamma} mcg/kg/min\n` +
-    `희석: ${drugMg} mg / ${volumeMl} mL\n\n` +
-    `주입속도: ${mlPerHr.toFixed(2)} mL/hr`
+    `입력: ${weight}kg, ${gamma}mcg/kg/min, ${drugMg}mg/${volumeMl}mL\n\n` +
+    `주입속도: ${ccPerHr.toFixed(2)} mL/hr`
   );
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
+app.listen(process.env.PORT || 3000);
