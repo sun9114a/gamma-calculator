@@ -4,11 +4,11 @@ const app = express();
 app.use(express.json());
 
 app.post("/skill", (req, res) => {
-  const p = req.body.action?.params || {};
+  const p = req.body?.action?.params || {};
 
   const weight = Number(p["체중"]);
   const gamma = Number(p["감마용량"]);
-  const drugMg = Number(p["약물총량"]);
+  const drugMg = Number(p["약물용량"]);
   const volumeMl = Number(p["총수액량"]);
 
   if (!weight || !gamma || !drugMg || !volumeMl) {
