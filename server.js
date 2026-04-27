@@ -25,10 +25,13 @@ app.post("/skill", (req, res) => {
     return kakaoText(res, "JSON 파싱 오류");
   }
 
-  const utterance = body?.userRequest?.utterance || "";
-  const nums = utterance.match(/\d+(\.\d+)?/g) || [];
+const p = body?.action?.params || {};
 
-  const weight = Number(nums[0]);
+const weight = Number(p["체중"]);
+const gamma = Number(p["감마용량"]);
+const drugMg = Number(p["약물용량"]);
+const volumeMl = Number(p["총수액량"]);
+  
   const gamma = Number(nums[1]);
   const drugMg = Number(nums[2]);
   const volumeMl = Number(nums[3]);
