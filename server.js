@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-app.use(express.json({ strict: false }));
+app.use(express.text({ type: "*/*" }));
 
 function kakaoText(res, text) {
   return res.status(200).json({
@@ -22,12 +22,16 @@ app.get("/", (req, res) => {
   res.send("Gamma calculator server is running");
 });
 
-app.get("/skill", (req, res) => {
-  return kakaoText(res, "스킬 서버는 정상입니다. 카카오에서는 POST로 호출해야 계산됩니다.");
-});
-
 app.post("/skill", (req, res) => {
-  const p = req.body?.action?.params || {};
+  let body = {};
+
+  try {
+    body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  } catch (e) {
+    return kakaoText(res, "JSON 형식이 잘못되었습니다.");
+  }
+
+  const p = body?.action?.params || {};
 
   const weight = Number(p["체중"]);
   const gamma = Number(p["감마용량"]);
@@ -56,10 +60,6 @@ app.post("/skill", (req, res) => {
     `희석: ${drugMg} mg / ${volumeMl} mL\n\n` +
     `주입속도: ${mlPerHr.toFixed(2)} mL/hr`
   );
-});
-
-app.use((err, req, res, next) => {
-  return kakaoText(res, "서버 오류가 발생했습니다. 입력값을 확인해주세요.");
 });
 
 const PORT = process.env.PORT || 3000;
